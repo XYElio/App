@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clientes & Factura</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      color: #01303F;         
+      background: #F9FAFB;      
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2em;
+      margin-bottom: 0.5em;
+      color: #01303F;          
+    }
+
+    h2 {
+      margin-top: 2em;
+      font-size: 1.2em;
+      color: #01303F;          
+      border-bottom: 2px solid #CBD5E0; 
+      padding-bottom: 0.2em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+    th, td {
+      border: 1px solid #E2E8F0;
+      padding: 0.5em;
+      text-align: left;
+    }
+    th {
+      background: #02A9F7;     
+      color: #FFFFFF;
+    }
+    tr:nth-child(even) {
+      background: #EDF2F7;      
+    }
+    .right {
+      text-align: right;
+    }
+
+    select, input[type="number"] {
+      padding: 0.5em;
+      margin: 0.3em 0.5em 0.3em 0;
+      border: 1px solid #CBD5E0; 
+      border-radius: 3px;
+      font-size: 1rem;
+    }
+  
+    button {
+      padding: 0.6em 1.2em;
+      background: #02A9F7;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+    button:hover {
+      background: #02577A;
+      transform: translateY(-1px);
+    }
+    button:active {
+      transform: translateY(0);
+    }
+    .resu_t {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5em;
+    }
+    .resu_t table {
+      width: 300px;
+      border: none;
+    }
+    .resu_t td {
+      padding: 0.4em 0;
+      border: none;
+    }
+    .resu_t tr td:first-child {
+      color: #718096;
+    }
+    .resu_t tr td:last-child {
+      font-weight: bold;
+      color: #01303F;
+    }
+  </style>
+</head>
+<body>
+  <h1>Clientes & Factura Parcial</h1>
+
+  <!-- 1) Selección de Cliente -->
+  <form action="" method="get">
+    <label for="cliente_id">Cliente:</label>
+    <select name="cliente_id" id="cliente_id" required>
+      <option value="" disabled selected>-- elige un cliente --</option>
+      {% for c in listado %}
+      <option value="{{ c.id_cte }}"{% if cliente and cliente.id_cte==c.id_cte %} selected{% endif %}>
+        {{ c.id_cte }} — {{ c.nombre_cte }}
+      </option>
+      {% endfor %}
+    </select>
+    <button type="submit">Continuar</button>
+  </form>
+
+  {% if cliente %}
+    <!-- 2) Datos del Cliente -->
+    <h2>Datos del Cliente</h2>
+    <p><strong>Nombre:</strong> {{ cliente.nombre_cte }}</p>
+    <p><strong>RFC:</strong> {{ cliente.rfc_cte }}</p>
+    <p><strong>Dirección:</strong> {{ cliente.direccion_cte or '—' }}</p>
+    <p><strong>Ciudad:</strong> {{ cliente.ciudad_cte }}, {{ cliente.nombre_estado }}</p>
+    <p><strong>Folio:</strong> {{ pedido.id_pedido }} | <strong>Fecha:</strong> {{ pedido.fecha_pedido }}</p>
+
+    <!-- 3) Detalle de Compras -->
+    <h2>Detalle de Compras</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Descripción</th>
+          <th class="right">Cant.</th>
+          <th class="right">Precio</th>
+          <th class="right">Importe</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if detalles %}
+          {% for d in detalles %}
+          <tr>
+            <td>{{ d.descripcion_producto }}</td>
+            <td class="right">{{ d.cantidad_productos }}</td>
+            <td class="right">{{ '%.2f'|format(d.precio_unitario) }}</td>
+            <td class="right">{{ '%.2f'|format(d.total_linea) }}</td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="4" class="right">No hay compras aún.</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+
+    <!-- 4) Agregar Producto -->
+    <h2>Agregar Producto</h2>
+    <form action="{{ url_for('add') }}" method="post">
+      <input type="hidden" name="cliente_id" value="{{ cliente.id_cte }}">
+      <input type="hidden" name="pedido_id" value="{{ pedido.id_pedido }}">
+      <label>Producto:</label>
+      <select name="producto_id" required>
+        <option value="" disabled selected>-- elige producto --</option>
+        {% for p in productos %}
+        <option value="{{ p.id_producto }}">
+          {{ p.descripcion_producto }} ({{ '%.2f'|format(p.precio_unitario) }})
+        </option>
+        {% endfor %}
+      </select>
+      <label>Cantidad:</label>
+      <input type="number" name="cantidad" min="1" value="1" required>
+      <button type="submit">Agregar</button>
+    </form>
+
+    <!-- 5) Totales y Generar Factura -->
+    <h2>Totales</h2>
+    <div class="resu_t">
+      <table>
+        <tr>
+          <td>Subtotal:</td>
+          <td class="right">{{ '%.2f'|format(subtotal) }}</td>
+        </tr>
+        <tr>
+          <td>IVA (16%):</td>
+          <td class="right">{{ '%.2f'|format(iva) }}</td>
+        </tr>
+        <tr>
+          <td><strong>Total:</strong></td>
+          <td class="right"><strong>{{ '%.2f'|format(total) }}</strong></td>
+        </tr>
+      </table>
+    </div>
+    <form action="{{ url_for('factura_final') }}" method="get" style="text-align:right; margin-top:1em;">
+      <input type="hidden" name="cliente_id" value="{{ cliente.id_cte }}">
+      <input type="hidden" name="pedido_id"  value="{{ pedido.id_pedido }}">
+      <button type="submit">Generar Factura</button>
+    </form>
+  {% endif %}
+</body>
+</html>

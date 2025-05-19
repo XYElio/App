@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Factura CPFA-{{ folio }}</title>
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: #ecf0f1;
+      margin: 0; padding: 2em 0;
+    }
+    .cnt {
+      max-width: 800px;
+      margin: auto;
+      background: #fff;
+      padding: 1.5em 2em;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2em;
+    }
+    .cab_l h1 {
+      margin: 0; color: #2c3e50;
+    }
+    .cab_l p, .cab_d p {
+      margin: 0.2em 0;
+      font-size: 0.9em;
+      color: #7f8c8d;
+    }
+    .cab_d h2 {
+      margin: 0;
+      color: #2980b9;
+      font-weight: 600;
+    }
+    section {
+      margin-bottom: 1.5em;
+    }
+    section h3 {
+      margin-bottom: 0.5em;
+      color: #34495e;
+      font-weight: 600;
+      border-bottom: 2px solid #bdc3c7;
+      padding-bottom: 0.2em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1em;
+    }
+    thead th {
+      background: #2980b9;
+      color: #fff;
+      font-weight: 600;
+      padding: 0.8em;
+      text-align: left;
+    }
+    tbody tr:nth-child(even) {
+      background: #f2f2f2;
+    }
+    td {
+      padding: 0.6em;
+      color: #2c3e50;
+    }
+    .alin_d {
+      text-align: right;
+    }
+    .resu_t {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 1.5em;
+    }
+    .resu_t table {
+      width: 300px;
+      border: none;
+    }
+    .resu_t td {
+      padding: 0.4em 0.6em;
+      border: none;
+    }
+    .resu_t tr td:first-child {
+      color: #7f8c8d;
+    }
+    .resu_t tr td:last-child {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <div class="cnt">
+    <header>
+      <div class="cab_l">
+        <h1>GAMINGTO S.A. de C.V.</h1>
+        <p><strong>RFC:</strong> GTG210319ABC</p>
+        <p>Av. Montevideo 304, Col. Americana</p>
+        <p>Guadalajara, Jalisco · CP 44160</p>
+        <p><strong>Tel:</strong> (33) 1234-5678</p>
+        <p><strong>Email:</strong> gamingto@gmail.com</p>
+      </div>
+      <div class="cab_d">
+        <h2>Factura</h2>
+        <p><strong>Serie:</strong> CPFA</p>
+        <p><strong>Folio:</strong> {{ folio }}</p>
+        <p><strong>Fecha:</strong> {{ pedido.fecha_pedido }}</p>
+      </div>
+    </header>
+
+    <section>
+      <h3>Datos del Cliente</h3>
+      <table>
+        <tr>
+          <td><strong>Nombre:</strong> {{ cliente.nombre_cte }}</td>
+          <td><strong>RFC:</strong> {{ cliente.rfc_cte }}</td>
+        </tr>
+        <tr>
+          <td><strong>Dirección:</strong> {{ cliente.direccion_cte or '—' }}</td>
+          <td><strong>Ciudad:</strong> {{ cliente.ciudad_cte }}, {{ cliente.nombre_estado }}</td>
+        </tr>
+      </table>
+    </section>
+
+    <section>
+      <h3>Detalle de Productos</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th class="alin_d">Cant.</th>
+            <th class="alin_d">Precio Unit.</th>
+            <th class="alin_d">Importe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in detalles %}
+          <tr>
+            <td>{{ d.descripcion_producto }}</td>
+            <td class="alin_d">{{ d.cantidad_productos }}</td>
+            <td class="alin_d">{{ '%.2f'|format(d.precio_unitario) }}</td>
+            <td class="alin_d">{{ '%.2f'|format(d.total_linea) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <div class="resu_t">
+      <table>
+        <tr>
+          <td>Subtotal:</td>
+          <td class="alin_d">{{ '%.2f'|format(subtotal) }}</td>
+        </tr>
+        <tr>
+          <td>IVA (16%):</td>
+          <td class="alin_d">{{ '%.2f'|format(iva) }}</td>
+        </tr>
+        <tr>
+          <td><strong>Total:</strong></td>
+          <td class="alin_d"><strong>{{ '%.2f'|format(total) }}</strong></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
